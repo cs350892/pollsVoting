@@ -7,6 +7,8 @@ export default function AdminDashboard() {
   const { user } = useContext(AuthContext);
   const [polls, setPolls] = useState([]);
   const [form, setForm] = useState({ question: '', options: '', closingAt: '' });
+  const [selectedPoll, setSelectedPoll] = useState(null);
+  const [results, setResults] = useState(null);
 
   useEffect(() => {
     const future = new Date();
@@ -35,7 +37,7 @@ export default function AdminDashboard() {
     try {
       await API.post('/polls', { question: form.question, options: opts, closingAt: form.closingAt });
       setForm({ question: '', options: '', closingAt: form.closingAt });
-      alert('Poll created successfully!');
+      alert('Poll created!');
       loadPolls();
     } catch (err) {
       alert('Error: ' + (err.response?.data?.msg || 'Try again'));
@@ -43,9 +45,13 @@ export default function AdminDashboard() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Delete this poll?')) {
+    if (window.confirm('Delete poll?')) {
       await API.delete(`/polls/${id}`);
       loadPolls();
+      if (selectedPoll?._id === id) {
+        setSelectedPoll(null);
+        setResults(null);
+      }
     }
   };
 
@@ -54,10 +60,11 @@ export default function AdminDashboard() {
     loadPolls();
   };
 
-  const viewResults = async (id) => {
+  const viewResults = async (poll) => {
     try {
-      const res = await API.get(`/polls/${id}/results`);
-      alert(`Results: ${JSON.stringify(res.data.results, null, 2)}`);
+      const res = await API.get(`/polls/${poll._id}/results`);
+      setSelectedPoll(poll);
+      setResults(res.data);
     } catch (err) {
       alert('Poll not closed yet!');
     }
@@ -66,51 +73,76 @@ export default function AdminDashboard() {
   if (user?.role !== 'admin') return <p>Access denied.</p>;
 
   return (
-    <div className="container">
-      <h2>Admin Dashboard</h2>
-      <div className="card">
+    <div className="container" style={{ marginTop: '2rem' }}>
+      <h1 style={{ textAlign: 'center', color: '#1877f2', marginBottom: '1.5rem' }}>
+        Admin Dashboard
+      </h1>
+
+      <div className="card" style={{ marginBottom: '2rem' }}>
         <h3>Create New Poll</h3>
         <form onSubmit={handleCreate}>
-          <input placeholder="Enter question" value={form.question} onChange={e => setForm({ ...form, question: e.target.value })} required style={{ fontSize: '1.1rem' }} />
-          <textarea placeholder="Options (one per line)" value={form.options} onChange={e => setForm({ ...form, options: e.target.value })} rows={4} required style={{ fontSize: '1.1rem' }} />
+          <input placeholder="Question" value={form.question} onChange={e => setForm({ ...form, question: e.target.value })} required />
+          <textarea placeholder="Options (one per line)" value={form.options} onChange={e => setForm({ ...form, options: e.target.value })} rows={4} required />
           <div style={{ margin: '1rem 0' }}>
             <label><strong>Closing Time:</strong></label>
-            <input type="datetime-local" value={form.closingAt} onChange={e => setForm({ ...form, closingAt: e.target.value })} required style={{ width: '100%', padding: '0.8rem', fontSize: '1.1rem' }} />
+            <input type="datetime-local" value={form.closingAt} onChange={e => setForm({ ...form, closingAt: e.target.value })} required style={{ width: '100%' }} />
             <small style={{ color: '#666' }}>Default: 1 hour from now</small>
           </div>
-          <button type="submit" className="btn-primary" style={{ width: '100%', padding: '0.9rem', fontSize: '1.2rem' }}>
+          <button type="submit" className="btn-primary" style={{ width: '100%' }}>
             Create Poll
           </button>
         </form>
       </div>
 
-      <h3>Your Polls</h3>
+      <h2 style={{ color: '#1877f2', marginBottom: '1rem' }}>Your Polls</h2>
       {polls.length === 0 ? (
-        <p>No polls created yet.</p>
+        <p style={{ textAlign: 'center', color: '#888' }}>No polls created yet.</p>
       ) : (
-        polls.map(poll => {
-          const now = new Date();
-          const isClosed = poll.isClosed || now >= new Date(poll.closingAt);
-          return (
-            <div key={poll._id} className="card">
-              <h4>{poll.question}</h4>
-              <p><strong>Closes:</strong> {new Date(poll.closingAt).toLocaleString()}</p>
-              <p><strong>Status:</strong> 
-                <span style={{ color: isClosed ? 'red' : 'green', fontWeight: 'bold', marginLeft: '0.5rem' }}>
-                  {isClosed ? 'CLOSED' : 'OPEN'}
-                </span>
-              </p>
-              <div style={{ marginTop: '0.5rem' }}>
-                <button onClick={() => handleClose(poll._id)} disabled={isClosed} className="btn-secondary">
-                  Close Now
-                </button>
-                <button onClick={() => handleDelete(poll._id)} className="btn-danger">
-                  Delete
-                </button>
+        <div>
+          {polls.map(poll => {
+            const now = new Date();
+            const isClosed = poll.isClosed || now >= new Date(poll.closingAt);
+            return (
+              <div key={poll._id} className="card" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h4>{poll.question}</h4>
+                  <p><strong>Closes:</strong> {new Date(poll.closingAt).toLocaleString()}</p>
+                  <p><strong>Status:</strong> <span style={{ color: isClosed ? 'red' : 'green', fontWeight: 'bold' }}>{isClosed ? 'CLOSED' : 'OPEN'}</span></p>
+                </div>
+                <div>
+                  <button onClick={() => viewResults(poll)} className="btn-primary" style={{ margin: '0.3rem' }}>
+                    View Results
+                  </button>
+                  <button onClick={() => handleClose(poll._id)} disabled={isClosed} className="btn-secondary" style={{ margin: '0.3rem' }}>
+                    Close
+                  </button>
+                  <button onClick={() => handleDelete(poll._id)} className="btn-danger" style={{ margin: '0.3rem' }}>
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
+      )}
+
+      {results && selectedPoll && (
+        <div className="card" style={{ marginTop: '2rem', padding: '1.5rem' }}>
+          <h3 style={{ color: '#1877f2', marginBottom: '1rem' }}>
+            Results: {selectedPoll.question}
+          </h3>
+          <ResultsChart data={results.results} />
+          <button
+            onClick={() => {
+              setSelectedPoll(null);
+              setResults(null);
+            }}
+            className="btn-secondary"
+            style={{ marginTop: '1rem', width: '100%' }}
+          >
+            Close Results
+          </button>
+        </div>
       )}
     </div>
   );
