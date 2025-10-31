@@ -20,7 +20,7 @@ export const createPoll = async (req, res) => {
     res.status(500).json({ msg: 'Server error' });
   }
 };
-
+//get polls
 export const getOpenPolls = async (req, res) => {
   try {
     const now = new Date();
@@ -35,37 +35,50 @@ export const getOpenPolls = async (req, res) => {
 
 export const getAdminPolls = async (req, res) => {
   try {
-    const polls = await Poll.find({ createdBy: req.user.id });
+    const polls = await Poll.find({ 
+      createdBy: req.user.id
+     });
     res.json(polls);
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({
+       msg: 'Server error'
+       });
   }
 };
-
+//update
 export const updatePoll = async (req, res) => {
   const { id } = req.params;
   try {
     let poll = await Poll.findById(id);
-    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
+    if (!poll) return res.status(404).json({
+       msg: 'Poll not found' 
+      });
     if (poll.createdBy.toString() !== req.user.id) return res.status(403).json({ msg: 'Unauthorized' });
 
-    const updated = await Poll.findByIdAndUpdate(id, { $set: req.body }, { new: true });
+    const updated = await Poll.findByIdAndUpdate(id,
+       { $set: req.body }, { new: true });
     res.json(updated);
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ 
+      msg: 'Server error' 
+    });
   }
 };
-
+//delete
 export const deletePoll = async (req, res) => {
   const { id } = req.params;
   try {
     const poll = await Poll.findById(id);
-    if (!poll) return res.status(404).json({ msg: 'Poll not found' });
+    if (!poll) return res.status(404).json({
+       msg: 'Poll not found'
+       });
     if (poll.createdBy.toString() !== req.user.id) return res.status(403).json({ msg: 'Unauthorized' });
 
     await Poll.deleteOne({ _id: id });
     await Vote.deleteMany({ poll: id });
-    res.json({ msg: 'Poll deleted' });
+    res.json({
+       msg: 'Poll deleted'
+       });
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
