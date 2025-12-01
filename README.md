@@ -3,44 +3,59 @@
 
 A simple MERN app where Admins create polls, Users vote once, and results show in a bar chart.
 
+## 🚀 Live Demo
+[View on Render](https://your-app-name.onrender.com) _(Update after deployment)_
 
- Features
-- Register / Login
+## ✨ Features
+- Register / Login with JWT authentication
 - Admin: Create, Close, Delete Polls
 - User: Vote (once per poll)
 - View live results (after poll closes)
-- Responsive UI
+- Responsive UI with React
 
-
- Tech Used
-- **Frontend**: React, Axios, Recharts
+## 🛠 Tech Stack
+- **Frontend**: React, Vite, Axios, Recharts
 - **Backend**: Node.js (ESM), Express, JWT
 - **Database**: MongoDB (Mongoose)
 
+## 📦 Deployment
 
- How to Run
+This project is ready to deploy on Render! See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
 
- 1. Clone & Install
+### Quick Deploy to Render
+
+1. Push code to GitHub
+2. Connect repository to Render
+3. Render will auto-detect `render.yaml`
+4. Set environment variables (MONGO_URI, JWT_SECRET, etc.)
+5. Deploy!
+
+## 💻 Local Development
+
+### 1. Clone & Install
+```bash
 git clone https://github.com/cs350892/pollsVoting.git
-cd poll-voting-app
+cd pollsVoting
+npm run install:all
+```
 
- Backend
-cd backend
-npm install
+### 2. Setup Environment Variables
 
- Frontend
-cd ../frontend
-npm install
-
-
-2. Setup `.env` (in `backend`)
-   
+**Backend** - Create `backend/.env`:
+```env
 PORT=5000
-MONGO_URI=mongodb+srv://cs350892_db_user:XzZwdok7uyxNsn3x@cluster0.g1u1e67.mongodb.net/?appName=Cluster0
-JWT_SECRET=0a72536b5889c03b70edc0cbde5184639ba2310c8211e48d08970e1725447421291d9a1ecb7bc21f0af84e8b13d52a9af5bd387109013d4031a189ffde1a03df
+NODE_ENV=development
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secure_jwt_secret
+FRONTEND_URL=http://localhost:5173
+```
 
+**Frontend** - Create `frontend/.env`:
+```env
+VITE_API_URL=http://localhost:5000/api
+```
 
- 4. Run
+### 3. Run Development Servers
 ```bash
 # Terminal 1: Backend
 cd backend
@@ -48,10 +63,10 @@ npm run dev
 
 # Terminal 2: Frontend
 cd frontend
-npm start
+npm run dev
 ```
 
-Open: [http://localhost:3000](http://localhost:3000)
+Open: [http://localhost:5173](http://localhost:5173)
 
 ---
 

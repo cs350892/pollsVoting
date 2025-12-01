@@ -12,19 +12,39 @@ const __dirname = path.dirname(__filename);
 await connectDB();
 
 const app = express();
+
+// CORS Configuration
+const allowedOrigins = process.env.NODE_ENV === 'production' 
+  ? [process.env.FRONTEND_URL] 
+  : ["http://localhost:5173", "http://localhost:3000"];
+
 app.use(cors({
-  origin: [ "http://localhost:5173"],
+  origin: allowedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
 }));
 
 app.use(express.json());
-app.use(cors());
-app.use(express.json());
 
+// API Routes
 app.use('/api/auth', (await import('./routes/auth.js')).default);
 app.use('/api/polls', (await import('./routes/polls.js')).default);
 app.use('/api/votes', (await import('./routes/votes.js')).default);
+
+// Serve static files from the frontend build in production
+if (process.env.NODE_ENV === 'production') {
+  const frontendBuildPath = path.join(__dirname, '../frontend/dist');
+  app.use(express.static(frontendBuildPath));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  });
+}
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Server is running' });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -1,0 +1,20 @@
+services:
+  # Web service that serves both frontend and backend
+  - type: web
+    name: pollsvoting
+    env: node
+    region: singapore
+    plan: free
+    buildCommand: npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        value: https://pollsvoting.onrender.com
