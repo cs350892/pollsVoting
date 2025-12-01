@@ -26,25 +26,28 @@ app.use(cors({
 
 app.use(express.json());
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Backend API is running' });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Polls Voting API', 
+    version: '1.0.0',
+    endpoints: {
+      auth: '/api/auth',
+      polls: '/api/polls',
+      votes: '/api/votes'
+    }
+  });
+});
+
 // API Routes
 app.use('/api/auth', (await import('./routes/auth.js')).default);
 app.use('/api/polls', (await import('./routes/polls.js')).default);
 app.use('/api/votes', (await import('./routes/votes.js')).default);
-
-// Serve static files from the frontend build in production
-if (process.env.NODE_ENV === 'production') {
-  const frontendBuildPath = path.join(__dirname, '../frontend/dist');
-  app.use(express.static(frontendBuildPath));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(frontendBuildPath, 'index.html'));
-  });
-}
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', message: 'Server is running' });
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
