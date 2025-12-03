@@ -14,6 +14,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: 'esbuild'
-  }
+    minify: 'esbuild',
+    copyPublicDir: true
+  },
+  publicDir: 'public'
 })
